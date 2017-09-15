@@ -100,24 +100,37 @@ int main() {
           */
           Eigen::VectorXd state(6);
 
-          //Transform waypoints
-          Eigen::VectorXd x_rel(ptsx.size());
-          for (int i=0;i<ptsx.size();i++){
-            x_rel[i]=ptsx[i]-px;
-          }
-          Eigen::VectorXd y_rel(ptsy.size());;
-          for (int i=0;i<ptsy.size();i++){
-            y_rel[i]=ptsy[i]-py;
-          }
-          auto coeffs = polyfit(x_rel,y_rel,3) ;
-          double cte = polyeval(coeffs, 0) - 0;//Assume current position is (0,0)
-          double epsi = psi - atan(coeffs[1]+(2*coeffs[1]*x_rel[0])+(3*coeffs[2]*x_rel[0]*x_rel[0]));;
+          //Transform waypoints into car-coordinates
 
-          state << px, py, psi, v, cte, epsi;
+          Eigen::VectorXd x_rel(ptsx.size());
+          Eigen::VectorXd y_rel(ptsx.size());
+          double car_x=(px*cos(psi))+(py*sin(psi));
+          double car_y=(py*cos(psi))-(px*sin(psi));
+          for (int i=0;i<ptsx.size();i++){
+            x_rel[i]=(ptsx[i]*cos(psi))+(ptsy[i]*sin(psi))-car_x;
+            y_rel[i]=(ptsy[i]*cos(psi))-(ptsx[i]*sin(psi))-car_y;
+            //cout<<"Original Waypoint "<<i<<" "<<ptsx[i]<<","<<ptsy[i];
+            //cout<<" Transformed to "<<x_rel[i]<<","<<y_rel[i]<<endl;
+          }
+
+          double new_x=0.0;//Recentering origin around car
+          double new_y=0.0;//Recentering origin around car
+          double new_psi=0.0;//Re orienting axis to match car
+          auto coeffs = polyfit(x_rel,y_rel,3) ;
+          cout<<"Fit:"<<coeffs[0]<<" + "<<coeffs[1]<<" x+ "<<coeffs[2]<<" x^2+ "<<coeffs[3]<<" x^3"<<endl;
+
+          double cte = polyeval(coeffs, new_x) - new_y;
+
+          double epsi = new_psi - atan(coeffs[1]+(2*coeffs[1]*new_x)+(3*coeffs[2]*new_x));//Wrt car
+          
+          cout<<"State:"<<new_x<<","<<new_y<<","<< new_psi<<","<< v<<","<< cte<<","<< epsi<<endl;
+          state << new_x, new_y, new_psi, v, cte, epsi;
           auto vars = mpc.Solve(state, coeffs);
 
           double steer_value=vars[6];
           double throttle_value=vars[7];
+          //double steer_value=0.0;
+          //double throttle_value=0.25;
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
@@ -137,10 +150,14 @@ int main() {
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
-          // for (float x=0.0;x<10;x+=1.0) {
-          //   next_x_vals.push_back(x);
-          //   next_y_vals.push_back(polyeval(coeffs, x));
-          // }
+
+          float dist=5.0;
+          for (int x=0;x<6;x++) {
+            //next_x_vals.push_back(x_rel[(int)x]);
+            next_x_vals.push_back(x*dist);
+            next_y_vals.push_back(polyeval(coeffs, x*dist));
+            //next_y_vals.push_back(y_rel[(int)x]);
+          }
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
 
