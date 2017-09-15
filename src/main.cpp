@@ -98,9 +98,26 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          Eigen::VectorXd state(6);
 
+          //Transform waypoints
+          Eigen::VectorXd x_rel(ptsx.size());
+          for (int i=0;i<ptsx.size();i++){
+            x_rel[i]=ptsx[i]-px;
+          }
+          Eigen::VectorXd y_rel(ptsy.size());;
+          for (int i=0;i<ptsy.size();i++){
+            y_rel[i]=ptsy[i]-py;
+          }
+          auto coeffs = polyfit(x_rel,y_rel,3) ;
+          double cte = polyeval(coeffs, 0) - 0;//Assume current position is (0,0)
+          double epsi = psi - atan(coeffs[1]+(2*coeffs[1]*x_rel[0])+(3*coeffs[2]*x_rel[0]*x_rel[0]));;
+
+          state << px, py, psi, v, cte, epsi;
+          auto vars = mpc.Solve(state, coeffs);
+
+          double steer_value=vars[6];
+          double throttle_value=vars[7];
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
@@ -120,7 +137,10 @@ int main() {
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
-
+          // for (float x=0.0;x<10;x+=1.0) {
+          //   next_x_vals.push_back(x);
+          //   next_y_vals.push_back(polyeval(coeffs, x));
+          // }
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
 
