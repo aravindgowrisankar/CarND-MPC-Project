@@ -20,7 +20,7 @@ double dt = 0.05;
 //
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
-double ref_v = 40;
+double ref_v = 15;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -59,7 +59,7 @@ class FG_eval {
     }
 
     for (int t = 0; t < N-2; t++) {
-      fg[0] += pow(vars[a_start+t+1]-vars[a_start+t],2);
+      fg[0] += 100*pow(vars[a_start+t+1]-vars[a_start+t],2);
       fg[0] += 500*pow(vars[delta_start+t+1]-vars[delta_start+t],2);
     }
 
