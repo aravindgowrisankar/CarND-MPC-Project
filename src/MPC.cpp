@@ -97,7 +97,7 @@ class FG_eval {
       AD<double> d0 = vars[delta_start + t - 1];
       AD<double> y_ref = polyeval(coeffs,x0);
 
-      AD<double> psi_des = CppAD::atan(coeffs[1]+(2*coeffs[1]*x1)+(3*coeffs[2]*x1*x1));//f(x) is a linear polynomial; f'(x) is a constant
+      AD<double> psi_des = CppAD::atan(coeffs[1]+(2*coeffs[1]*x0)+(3*coeffs[2]*x0*x0));//f(x) is a linear polynomial; f'(x) is a constant
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -223,7 +223,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   options += "Sparse  true        reverse\n";
   // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
   // Change this as you see fit.
-  options += "Numeric max_cpu_time          0.5\n";
+  options += "Numeric max_cpu_time          1.5\n";
 
   // place to return solution
   CppAD::ipopt::solve_result<Dvector> solution;
@@ -238,7 +238,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // Cost
   auto cost = solution.obj_value;
-  std::cout << "Cost " << cost << std::endl;
+  std::cout << "Cost " << cost <<"ok="<<ok<<std::endl;
 
   // TODO: Return the first actuator values. The variables can be accessed with
   // `solution.x[i]`.
