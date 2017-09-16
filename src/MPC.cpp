@@ -59,7 +59,8 @@ class FG_eval {
     }
 
     for (int t = 0; t < N-2; t++) {
-      fg[0] += 100*pow(vars[a_start+t+1]-vars[a_start+t],2);
+      fg[0] += 500*pow(vars[v_start+t+1]-vars[v_start+t],2);
+      fg[0] += 500*pow(vars[a_start+t+1]-vars[a_start+t],2);
       fg[0] += 500*pow(vars[delta_start+t+1]-vars[delta_start+t],2);
     }
 
@@ -246,9 +247,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
   return {solution.x[x_start + 1],   solution.x[y_start + 1],
-          solution.x[psi_start + 1], solution.x[v_start + 1],
-          solution.x[cte_start + 1], solution.x[epsi_start + 1],
-          solution.x[delta_start],   solution.x[a_start]};
+      solution.x[psi_start + 1], solution.x[v_start + 1],
+      solution.x[cte_start + 1], solution.x[epsi_start + 1],
+      solution.x[delta_start],   solution.x[a_start],
+      solution.x[x_start + 5],   solution.x[y_start + 5],
+      solution.x[x_start + 10],   solution.x[y_start + 10],
+      solution.x[x_start + 15],   solution.x[y_start + 15],
+      solution.x[x_start + 20],   solution.x[y_start + 20]
+};
 
 }
 
